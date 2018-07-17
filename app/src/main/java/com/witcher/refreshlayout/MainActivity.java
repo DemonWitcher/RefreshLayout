@@ -32,9 +32,10 @@ public class MainActivity extends AppCompatActivity {
                 refreshLayout.postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        L.i("我是上层 刷新了数据");
                         refreshLayout.stopRefresh();
                     }
-                },3000);
+                },1000);
             }
 
             @Override

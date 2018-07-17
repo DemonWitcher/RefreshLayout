@@ -27,7 +27,7 @@ public class RefreshLayout extends ViewGroup {
     private int mMaxDistance;//总可下拉距离
 
     private int mAutoBackTime = 200;//下拉一点不足触发刷新时回滚动画时间
-    private int mFinishRefreshTime = 2000;//完成刷新自动回滚动画时间
+    private int mFinishRefreshTime = 200;//完成刷新自动回滚动画时间
     private int mBackToHeaderTime = 200;//下拉刷新时自动回退到头部刚好露出的时间
 
     private RefreshListener mRefreshListener;
@@ -147,7 +147,7 @@ public class RefreshLayout extends ViewGroup {
                     //这里用增量的改 再当前基础上修改
                     //这里加上 边界检测 -mMaxDistance到0之间  100
                     int scrollY = (int) (mLastY - y);
-                    L.i("mLastY:"+mLastY+"   y:"+y+"  scrollY:"+scrollY);
+//                    L.i("mLastY:"+mLastY+"   y:"+y+"  scrollY:"+scrollY);
                     int finalScrollY = getScrollY() + scrollY;
                     finalScrollY = Math.min(finalScrollY,0);
                     finalScrollY = Math.max(-mMaxDistance,finalScrollY);
@@ -156,7 +156,7 @@ public class RefreshLayout extends ViewGroup {
 //                        L.i("松手可以刷新了");
                     }
                 } else {
-                    L.i("到量了");
+//                    L.i("到量了");
                 }
                 mLastY = y;
             }
@@ -167,12 +167,12 @@ public class RefreshLayout extends ViewGroup {
                 if (getScrollY() != 0) {
                     if (getScrollY() > -mHeaderHeight) {
                         if(mState == NORMAL||mState == FINIFSHING){
-                            L.i("滚回去"); //正常状态回退回去  刷新中状态不做处理
+//                            L.i("滚回去"); //正常状态回退回去  刷新中状态不做处理
                             mScroller.startScroll(0, getScrollY(), 0, -getScrollY(), mAutoBackTime);
                             invalidate();
                         }
                     } else {
-                        L.i("开始刷新");
+//                        L.i("开始刷新");
                         mState = REFRESHING;
                         mScroller.startScroll(0, getScrollY(), 0, -(getScrollY() + mHeaderHeight), mBackToHeaderTime);
                         invalidate();
@@ -203,13 +203,13 @@ public class RefreshLayout extends ViewGroup {
             invalidate();
             if (mScroller.isFinished()) {
                 if (mState == REFRESHING) {
-                    L.i("给出开始刷新回调");
+//                    L.i("给出开始刷新回调");
                     if (mRefreshListener != null) {
                         mRefreshListener.onRefresh();
                     }
                 }else if(mState == FINIFSHING){
                     mState = NORMAL;
-                    L.i("刷新完成 回到普通状态");
+//                    L.i("刷新完成 回到普通状态");
                     if (mRefreshListener != null) {
                         mRefreshListener.onFinish();
                     }
