@@ -20,8 +20,8 @@ public class RefreshLayout extends ViewGroup {
     private Scroller mScroller;
     private int mState = NORMAL;
 
-    private float mDownX, mDownY;
-    private int mDownScrollY;
+    private float mDownY;
+    private float mLastY;
     private int mHeaderHeight;//头部高度
     private int mMoreDistance = 300;//超过头部后还可以下拉的距离 px
     private int mMaxDistance;//总可下拉距离
@@ -84,7 +84,6 @@ public class RefreshLayout extends ViewGroup {
             case MotionEvent.ACTION_DOWN: {
                 mDownY = event.getY();
                 mLastY = event.getY();
-                mDownScrollY = getScrollY();
                 if(!mScroller.isFinished()){
                     mScroller.forceFinished(true);
                 }
@@ -127,7 +126,6 @@ public class RefreshLayout extends ViewGroup {
 
 
      */
-    private float mLastY;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         super.onTouchEvent(event);
