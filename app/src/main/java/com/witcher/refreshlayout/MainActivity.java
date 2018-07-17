@@ -32,9 +32,14 @@ public class MainActivity extends AppCompatActivity {
                 refreshLayout.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-//                        refreshLayout.stopRefresh();
+                        refreshLayout.stopRefresh();
                     }
                 },3000);
+            }
+
+            @Override
+            public void onFinish() {
+
             }
         });
 
