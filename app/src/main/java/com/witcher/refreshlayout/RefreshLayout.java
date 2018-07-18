@@ -84,7 +84,7 @@ public class RefreshLayout extends ViewGroup {
             case MotionEvent.ACTION_DOWN: {
                 mDownY = event.getY();
                 mLastY = event.getY();
-                if(!mScroller.isFinished()){
+                if (!mScroller.isFinished()) {
                     mScroller.forceFinished(true);
                 }
             }
@@ -98,16 +98,7 @@ public class RefreshLayout extends ViewGroup {
                             ) {
                         return true;
                     }
-                } else if (mState == REFRESHING|| mState == FINIFSHING) {
-                    //这个时候 上滑到头部消失时 手势放给子view
-//                    if (getScrollY() <= 0      //头部没有露出检测
-//                            ) {
-//                        L.i("刷新中拦截手势");
-//                        return true;
-//                    }else{
-//                        L.i("下放给子view了");
-//                        return false;
-//                    }
+                } else if (mState == REFRESHING || mState == FINIFSHING) {
                     return true;
                 }
 
@@ -123,7 +114,9 @@ public class RefreshLayout extends ViewGroup {
 
     /*
     刷新中的时候 上滑是整体滚动 下滑是2次刷新
-
+                //根据手势滚动view  如果处于刷新中状态
+                // 上拉给子view  下拉的话并且子view不可滑动 则整体再次下移 松手的话
+                // 如果位置满足刷新条件则再次触发下拉刷新 如果整体被拉回去了则????? 整体再下移到刷新状态吗???
 
      */
     @Override
@@ -136,25 +129,25 @@ public class RefreshLayout extends ViewGroup {
             break;
             case MotionEvent.ACTION_MOVE: {
                 float y = event.getY();
-//                L.i("出现刷新头 getScrollY  " + getScrollY());
-                //根据手势滚动view  如果处于刷新中状态
-                // 上拉给子view  下拉的话并且子view不可滑动 则整体再次下移 松手的话
-                // 如果位置满足刷新条件则再次触发下拉刷新 如果整体被拉回去了则????? 整体再下移到刷新状态吗???
-                //-138
-                if (getScrollY() >= -mMaxDistance) {
-                    //这里用增量的改 再当前基础上修改
-                    //这里加上 边界检测 -mMaxDistance到0之间  100
-                    int scrollY = (int) (mLastY - y);
-//                    L.i("mLastY:"+mLastY+"   y:"+y+"  scrollY:"+scrollY);
-                    int finalScrollY = getScrollY() + scrollY;
-                    finalScrollY = Math.min(finalScrollY,0);
-                    finalScrollY = Math.max(-mMaxDistance,finalScrollY);
-                    scrollTo(0, finalScrollY);
-                    if (getScrollY() < -mHeaderHeight) {
-//                        L.i("松手可以刷新了");
-                    }
+                boolean up = mLastY >y;
+                if ((mState == REFRESHING || mState == FINIFSHING) &&
+                        (getScrollY() == 0 && mContentView.canScrollVertically(up?1:-1))//这里改成根据方向来判断正负1
+                        ) {
+                    mContentView.onTouchEvent(event);
+                    L.i("下放给子view了");
                 } else {
+                    if (getScrollY() >= -mMaxDistance) {
+                        int offset = (int) (mLastY - y);
+                        int finalScrollY = getScrollY() + offset;
+                        finalScrollY = Math.min(finalScrollY, 0);
+                        finalScrollY = Math.max(-mMaxDistance, finalScrollY);
+                        scrollTo(0, finalScrollY);
+                        if (getScrollY() < -mHeaderHeight) {
+//                        L.i("松手可以刷新了");
+                        }
+                    } else {
 //                    L.i("到量了");
+                    }
                 }
                 mLastY = y;
             }
@@ -164,7 +157,7 @@ public class RefreshLayout extends ViewGroup {
                 //如果没超过头部 回滚到0
                 if (getScrollY() != 0) {
                     if (getScrollY() > -mHeaderHeight) {
-                        if(mState == NORMAL||mState == FINIFSHING){
+                        if (mState == NORMAL || mState == FINIFSHING) {
 //                            L.i("滚回去"); //正常状态回退回去  刷新中状态不做处理
                             mScroller.startScroll(0, getScrollY(), 0, -getScrollY(), mAutoBackTime);
                             invalidate();
@@ -205,7 +198,7 @@ public class RefreshLayout extends ViewGroup {
                     if (mRefreshListener != null) {
                         mRefreshListener.onRefresh();
                     }
-                }else if(mState == FINIFSHING){
+                } else if (mState == FINIFSHING) {
                     mState = NORMAL;
 //                    L.i("刷新完成 回到普通状态");
                     if (mRefreshListener != null) {
@@ -239,6 +232,7 @@ public class RefreshLayout extends ViewGroup {
 
     public interface RefreshListener {
         void onRefresh();
+
         void onFinish();
     }
 }
