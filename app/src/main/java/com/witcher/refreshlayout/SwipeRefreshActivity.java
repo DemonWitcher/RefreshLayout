@@ -6,15 +6,16 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-public class MainActivity extends AppCompatActivity {
+public class SwipeRefreshActivity extends AppCompatActivity {
 
-    private RefreshLayout refreshLayout;
+
+    private SwipeRefreshLayout refreshLayout;
     private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_swipe);
 
         initView();
     }
@@ -26,28 +27,23 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL,false));
         recyclerView.setAdapter(new TestAdapter(this));
 
-        refreshLayout.setRefreshListener(new RefreshLayout.RefreshListener() {
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 refreshLayout.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         L.i("我是上层 刷新了数据");
-//                        refreshLayout.stopRefresh();
+//                       refreshLayout.setRefreshing(false);
                     }
                 },1000);
-            }
-
-            @Override
-            public void onFinish() {
-
             }
         });
 
         findViewById(R.id.bt1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                refreshLayout.stopRefresh();
+                refreshLayout.setRefreshing(false);
             }
         });
     }

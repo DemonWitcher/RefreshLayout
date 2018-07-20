@@ -27,7 +27,7 @@ public class RefreshLayout extends ViewGroup {
     private int mMaxDistance;//总可下拉距离
 
     private int mAutoBackTime = 200;//下拉一点不足触发刷新时回滚动画时间
-    private int mFinishRefreshTime = 200;//完成刷新自动回滚动画时间
+    private int mFinishRefreshTime = 2000;//完成刷新自动回滚动画时间
     private int mBackToHeaderTime = 200;//下拉刷新时自动回退到头部刚好露出的时间
 
     private RefreshListener mRefreshListener;
@@ -51,6 +51,7 @@ public class RefreshLayout extends ViewGroup {
         mScroller = new Scroller(getContext()
 //                , new LinearInterpolator()
         );
+        requestDisallowInterceptTouchEvent(true);
     }
 
     @Override
@@ -74,6 +75,7 @@ public class RefreshLayout extends ViewGroup {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
+        L.i("dispatchTouchEvent");
         return super.dispatchTouchEvent(event);
     }
 
@@ -120,6 +122,10 @@ public class RefreshLayout extends ViewGroup {
 
      */
     @Override
+    public void requestDisallowInterceptTouchEvent(boolean b) {
+        // Nope.
+    }
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
         super.onTouchEvent(event);
         int action = event.getAction();
@@ -133,9 +139,11 @@ public class RefreshLayout extends ViewGroup {
                 if ((mState == REFRESHING || mState == FINIFSHING) &&
                         (getScrollY() == 0 && mContentView.canScrollVertically(up?1:-1))//这里改成根据方向来判断正负1
                         ) {
-                    mContentView.onTouchEvent(event);
+//                    mContentView.onTouchEvent(event);
+                    requestDisallowInterceptTouchEvent(true);
                     L.i("下放给子view了");
                 } else {
+//                    requestDisallowInterceptTouchEvent(false);
                     if (getScrollY() >= -mMaxDistance) {
                         int offset = (int) (mLastY - y);
                         int finalScrollY = getScrollY() + offset;
