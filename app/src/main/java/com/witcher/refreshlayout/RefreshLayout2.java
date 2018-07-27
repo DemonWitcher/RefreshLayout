@@ -10,7 +10,7 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.OverScroller;
 
-public class RefreshLayout extends ViewGroup {
+public class RefreshLayout2 extends ViewGroup {
 
     public static final int NORMAL = 1;//正常
     public static final int REFRESHING = 2;//刷新中
@@ -38,17 +38,17 @@ public class RefreshLayout extends ViewGroup {
 
     private RefreshListener mRefreshListener;
 
-    public RefreshLayout(Context context) {
+    public RefreshLayout2(Context context) {
         super(context);
         init();
     }
 
-    public RefreshLayout(Context context, AttributeSet attrs) {
+    public RefreshLayout2(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public RefreshLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+    public RefreshLayout2(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
@@ -63,6 +63,7 @@ public class RefreshLayout extends ViewGroup {
         mMinimumVelocity = ViewConfiguration.get(getContext()).getScaledMinimumFlingVelocity();
         L.i("mMaximumVelocity:"+mMaximumVelocity);
         L.i("mMinimumVelocity:"+mMinimumVelocity);
+//        requestDisallowInterceptTouchEvent(false);
     }
 
     @Override
@@ -156,8 +157,10 @@ public class RefreshLayout extends ViewGroup {
                         (getScrollY() == 0 && mContentView.canScrollVertically(up?1:-1))//这里改成根据方向来判断正负1
                         ) {
                     mContentView.onTouchEvent(event);
+//                            requestDisallowInterceptTouchEvent(true);
                     L.i("下放给子view了");
                 } else {
+//                    requestDisallowInterceptTouchEvent(false);
                     if (getScrollY() >= -mMaxDistance) {
                         int offset = (int) (mLastY - y);
                         int finalScrollY = getScrollY() + offset;

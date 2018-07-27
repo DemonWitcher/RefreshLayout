@@ -42,7 +42,6 @@ import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Transformation;
-import android.widget.AbsListView;
 import android.widget.ListView;
 
 /**
@@ -686,6 +685,7 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
         if (!isEnabled() || mReturningToStart || canChildScrollUp()
                 || mRefreshing || mNestedScrollInProgress) {
             // Fail fast if we're not in a state where a swipe is possible
+            L.i("onInterceptTouchEvent1 false ");
             return false;
         }
 
@@ -697,19 +697,23 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
 
                 pointerIndex = ev.findPointerIndex(mActivePointerId);
                 if (pointerIndex < 0) {
+                    L.i("onInterceptTouchEvent2 false ");
                     return false;
                 }
                 mInitialDownY = ev.getY(pointerIndex);
                 break;
 
             case MotionEvent.ACTION_MOVE:
+                L.i("onInterceptTouchEvent  move");
                 if (mActivePointerId == INVALID_POINTER) {
                     Log.e(LOG_TAG, "Got ACTION_MOVE event but don't have an active pointer id.");
+                    L.i("onInterceptTouchEvent3 false ");
                     return false;
                 }
 
                 pointerIndex = ev.findPointerIndex(mActivePointerId);
                 if (pointerIndex < 0) {
+                    L.i("onInterceptTouchEvent4 false ");
                     return false;
                 }
                 final float y = ev.getY(pointerIndex);
@@ -726,21 +730,95 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
                 mActivePointerId = INVALID_POINTER;
                 break;
         }
-
+        L.i("onInterceptTouchEvent5 mIsBeingDragged "+mIsBeingDragged);
         return mIsBeingDragged;
     }
 
     @Override
-    public void requestDisallowInterceptTouchEvent(boolean b) {
-        // if this is a List < L or another view that doesn't support nested
-        // scrolling, ignore this request so that the vertical scroll event
-        // isn't stolen
-        if ((android.os.Build.VERSION.SDK_INT < 21 && mTarget instanceof AbsListView)
-                || (mTarget != null && !ViewCompat.isNestedScrollingEnabled(mTarget))) {
-            // Nope.
-        } else {
-            super.requestDisallowInterceptTouchEvent(b);
+    public boolean onTouchEvent(MotionEvent ev) {
+        final int action = ev.getActionMasked();
+        int pointerIndex = -1;
+
+        if (mReturningToStart && action == MotionEvent.ACTION_DOWN) {
+            L.i("onTouchEvent 1");
+            mReturningToStart = false;
         }
+
+        if (!isEnabled() || mReturningToStart || canChildScrollUp()
+                || mRefreshing || mNestedScrollInProgress) {
+            // Fail fast if we're not in a state where a swipe is possible
+            L.i("onTouchEvent 2");
+            return false;
+        }
+
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                mActivePointerId = ev.getPointerId(0);
+                mIsBeingDragged = false;
+                break;
+
+            case MotionEvent.ACTION_MOVE: {
+                pointerIndex = ev.findPointerIndex(mActivePointerId);
+                if (pointerIndex < 0) {
+                    Log.e(LOG_TAG, "Got ACTION_MOVE event but have an invalid active pointer id.");
+                    L.i("onTouchEvent 3");
+                    return false;
+                }
+
+                final float y = ev.getY(pointerIndex);
+                startDragging(y);
+
+                if (mIsBeingDragged) {
+                    final float overscrollTop = (y - mInitialMotionY) * DRAG_RATE;
+                    if (overscrollTop > 0) {
+                        moveSpinner(overscrollTop);
+                    } else {
+                        L.i("onTouchEvent 4");
+                        return false;
+                    }
+                }
+                break;
+            }
+            case MotionEvent.ACTION_POINTER_DOWN: {
+                pointerIndex = ev.getActionIndex();
+                if (pointerIndex < 0) {
+                    Log.e(LOG_TAG,
+                            "Got ACTION_POINTER_DOWN event but have an invalid action index.");
+                    L.i("onTouchEvent 5");
+                    return false;
+                }
+                mActivePointerId = ev.getPointerId(pointerIndex);
+                break;
+            }
+
+            case MotionEvent.ACTION_POINTER_UP:
+                onSecondaryPointerUp(ev);
+                break;
+
+            case MotionEvent.ACTION_UP: {
+                pointerIndex = ev.findPointerIndex(mActivePointerId);
+                if (pointerIndex < 0) {
+                    Log.e(LOG_TAG, "Got ACTION_UP event but don't have an active pointer id.");
+                    L.i("onTouchEvent 6");
+                    return false;
+                }
+
+                if (mIsBeingDragged) {
+                    final float y = ev.getY(pointerIndex);
+                    final float overscrollTop = (y - mInitialMotionY) * DRAG_RATE;
+                    mIsBeingDragged = false;
+                    finishSpinner(overscrollTop);
+                }
+                mActivePointerId = INVALID_POINTER;
+                L.i("onTouchEvent 7");
+                return false;
+            }
+            case MotionEvent.ACTION_CANCEL:
+                L.i("onTouchEvent 8");
+                return false;
+        }
+        L.i("onTouchEvent 9");
+        return true;
     }
 
     // NestedScrollingParent
@@ -979,84 +1057,6 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
         }
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        final int action = ev.getActionMasked();
-        int pointerIndex = -1;
-
-        if (mReturningToStart && action == MotionEvent.ACTION_DOWN) {
-            mReturningToStart = false;
-        }
-
-        if (!isEnabled() || mReturningToStart || canChildScrollUp()
-                || mRefreshing || mNestedScrollInProgress) {
-            // Fail fast if we're not in a state where a swipe is possible
-            return false;
-        }
-
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-                mActivePointerId = ev.getPointerId(0);
-                mIsBeingDragged = false;
-                break;
-
-            case MotionEvent.ACTION_MOVE: {
-                pointerIndex = ev.findPointerIndex(mActivePointerId);
-                if (pointerIndex < 0) {
-                    Log.e(LOG_TAG, "Got ACTION_MOVE event but have an invalid active pointer id.");
-                    return false;
-                }
-
-                final float y = ev.getY(pointerIndex);
-                startDragging(y);
-
-                if (mIsBeingDragged) {
-                    final float overscrollTop = (y - mInitialMotionY) * DRAG_RATE;
-                    if (overscrollTop > 0) {
-                        moveSpinner(overscrollTop);
-                    } else {
-                        return false;
-                    }
-                }
-                break;
-            }
-            case MotionEvent.ACTION_POINTER_DOWN: {
-                pointerIndex = ev.getActionIndex();
-                if (pointerIndex < 0) {
-                    Log.e(LOG_TAG,
-                            "Got ACTION_POINTER_DOWN event but have an invalid action index.");
-                    return false;
-                }
-                mActivePointerId = ev.getPointerId(pointerIndex);
-                break;
-            }
-
-            case MotionEvent.ACTION_POINTER_UP:
-                onSecondaryPointerUp(ev);
-                break;
-
-            case MotionEvent.ACTION_UP: {
-                pointerIndex = ev.findPointerIndex(mActivePointerId);
-                if (pointerIndex < 0) {
-                    Log.e(LOG_TAG, "Got ACTION_UP event but don't have an active pointer id.");
-                    return false;
-                }
-
-                if (mIsBeingDragged) {
-                    final float y = ev.getY(pointerIndex);
-                    final float overscrollTop = (y - mInitialMotionY) * DRAG_RATE;
-                    mIsBeingDragged = false;
-                    finishSpinner(overscrollTop);
-                }
-                mActivePointerId = INVALID_POINTER;
-                return false;
-            }
-            case MotionEvent.ACTION_CANCEL:
-                return false;
-        }
-
-        return true;
-    }
 
     private void startDragging(float y) {
         final float yDiff = y - mInitialDownY;

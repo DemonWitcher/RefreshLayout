@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 public class TestAdapter extends RecyclerView.Adapter{
 
@@ -24,7 +25,8 @@ public class TestAdapter extends RecyclerView.Adapter{
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-
+        TextView tv = holder.itemView.findViewById(R.id.tv_content);
+        tv.setText(""+position);
     }
 
     @Override
