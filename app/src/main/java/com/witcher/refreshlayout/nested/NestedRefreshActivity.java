@@ -33,11 +33,12 @@ public class NestedRefreshActivity extends AppCompatActivity {
         refreshLayout.setRefreshListener(new NestedRefreshLayout.RefreshListener() {
             @Override
             public void onRefresh() {
+                L.i("开始刷新");
                 refreshLayout.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        L.i("我是上层 刷新了数据");
-//                        refreshLayout.stopRefresh();
+                        L.i("刷新完成");
+                        refreshLayout.stopRefresh();
                     }
                 },1000);
             }

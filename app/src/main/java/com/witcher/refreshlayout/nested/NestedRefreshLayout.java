@@ -16,8 +16,12 @@ import com.witcher.refreshlayout.R;
 
 public class NestedRefreshLayout extends ViewGroup implements NestedScrollingParent {
 
-    private RefreshListener mRefreshListener;
+    public static final int NORMAL = 1;//正常
+    public static final int REFRESHING = 2;//刷新中
+    public static final int FINIFSHING = 3;//刷新完成回退中
 
+    private RefreshListener mRefreshListener;
+    private int mState = NORMAL;
     private View mContentView;
     private View mHeaderView;
     private int mHeaderHeight;//头部高度
@@ -25,7 +29,7 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
     private int mMaxDistance;//总可下拉距离
     private OverScroller mOverScroller;
     private int mAutoBackTime = 200;//下拉一点不足触发刷新时回滚动画时间
-    private int mFinishRefreshTime = 2000;//完成刷新自动回滚动画时间
+    private int mFinishRefreshTime = 200;//完成刷新自动回滚动画时间
     private int mBackToHeaderTime = 200;//下拉刷新时自动回退到头部刚好露出的时间
 
     public NestedRefreshLayout(Context context) {
@@ -98,6 +102,7 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
             mOverScroller.startScroll(0,getScrollY(),0,-getScrollY(),mAutoBackTime);
             invalidate();
         }else if(getScrollY()<-mHeaderHeight){
+            mState = REFRESHING;
             mOverScroller.startScroll(0,getScrollY(),0,-mHeaderHeight-getScrollY(),mBackToHeaderTime);
             invalidate();
         }
@@ -109,6 +114,18 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
         if(mOverScroller.computeScrollOffset()){
             scrollTo(0,mOverScroller.getCurrY());
             invalidate();
+            if(mOverScroller.isFinished()){
+                if(mState == REFRESHING){
+                    if(mRefreshListener!=null){
+                        mRefreshListener.onRefresh();
+                    }
+                }else if(mState == FINIFSHING){
+                    mState = NORMAL;
+                    if(mRefreshListener!=null){
+                        mRefreshListener.onFinish();
+                    }
+                }
+            }
         }
     }
 
@@ -154,7 +171,7 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
 
     public void stopRefresh() {
         L.i("结束刷新");
-//        mState = FINIFSHING;
+        mState = FINIFSHING;
         mOverScroller.startScroll(0, getScrollY(), 0, -getScrollY(), mFinishRefreshTime);
         invalidate();
     }
