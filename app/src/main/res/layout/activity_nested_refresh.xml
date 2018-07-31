@@ -6,37 +6,22 @@
     android:background="#ffffff"
     android:orientation="vertical"
     >
+
     <Button
         android:id="@+id/bt1"
         android:text="结束刷新"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <com.witcher.refreshlayout.RefreshLayout
+    <com.witcher.refreshlayout.nested.NestedRefreshLayout
         android:id="@+id/refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
         <android.support.v7.widget.RecyclerView
             android:id="@+id/rv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
-
-        <!--<TextView-->
-            <!--android:background="@color/colorPrimary"-->
-            <!--android:textColor="#000000"-->
-            <!--android:textSize="32dp"-->
-            <!--android:gravity="center"-->
-            <!--android:text="我是正主view"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="match_parent" />-->
-        <!--<ListView-->
-            <!--android:id="@+id/lv"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="match_parent"/>-->
-
-
-    </com.witcher.refreshlayout.RefreshLayout>
+    </com.witcher.refreshlayout.nested.NestedRefreshLayout>
 
 
 </LinearLayout>
