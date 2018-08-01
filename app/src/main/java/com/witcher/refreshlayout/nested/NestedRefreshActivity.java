@@ -25,10 +25,18 @@ public class NestedRefreshActivity extends AppCompatActivity {
 
     private void initView() {
         refreshLayout = findViewById(R.id.refresh_layout);
-        recyclerView = findViewById(R.id.rv);
 
+
+        recyclerView = findViewById(R.id.rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL,false));
         recyclerView.setAdapter(new TestAdapter(this));
+
+//        findViewById(R.id.tv_aaa).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                L.i("点击事件AAA");
+//            }
+//        });
 
         refreshLayout.setRefreshListener(new NestedRefreshLayout.RefreshListener() {
             @Override

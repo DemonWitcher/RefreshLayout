@@ -3,10 +3,12 @@ package com.witcher.refreshlayout.nested;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingParent;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.OverScroller;
@@ -27,6 +29,7 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
     private int mHeaderHeight;//头部高度
     private int mMoreDistance = 300;//超过头部后还可以下拉的距离 px
     private int mMaxDistance;//总可下拉距离
+    private float mLastY;
     private OverScroller mOverScroller;
     private int mAutoBackTime = 200;//下拉一点不足触发刷新时回滚动画时间
     private int mFinishRefreshTime = 200;//完成刷新自动回滚动画时间
@@ -47,7 +50,7 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
         init();
     }
 
-    private void init(){
+    private void init() {
         mOverScroller = new OverScroller(getContext());
     }
 
@@ -62,6 +65,7 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
         mHeaderView = LayoutInflater.from(getContext()).inflate(R.layout.refresh_head, this, false);
         addViewInLayout(mHeaderView, -1, mHeaderView.getLayoutParams());
     }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         L.i("onMeasure");
@@ -81,10 +85,11 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
 
         mContentView.layout(left, 0, right, mContentView.getMeasuredHeight());
     }
+
     @Override
     public boolean onStartNestedScroll(@NonNull View child, @NonNull View target, @ViewCompat.ScrollAxis int axes) {
         L.i("onStartNestedScroll");
-        mOverScroller.forceFinished(true);
+        whenDown();
         return true;
     }
 
@@ -97,13 +102,21 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
     public void onStopNestedScroll(@NonNull View target) {
         L.i("onStopNestedScroll");
         //如果超过头部 就回滚到头部刚好露出
-        if(getScrollY()>=-mHeaderHeight&&getScrollY()<=0){
+        whenUp();
+    }
+
+    private void whenDown() {
+        mOverScroller.forceFinished(true);
+    }
+
+    private void whenUp() {
+        if (getScrollY() >= -mHeaderHeight && getScrollY() <= 0) {
             //如果没超过头部 就回滚到头部隐藏
-            mOverScroller.startScroll(0,getScrollY(),0,-getScrollY(),mAutoBackTime);
+            mOverScroller.startScroll(0, getScrollY(), 0, -getScrollY(), mAutoBackTime);
             invalidate();
-        }else if(getScrollY()<-mHeaderHeight){
+        } else if (getScrollY() < -mHeaderHeight) {
             mState = REFRESHING;
-            mOverScroller.startScroll(0,getScrollY(),0,-mHeaderHeight-getScrollY(),mBackToHeaderTime);
+            mOverScroller.startScroll(0, getScrollY(), 0, -mHeaderHeight - getScrollY(), mBackToHeaderTime);
             invalidate();
         }
     }
@@ -111,17 +124,17 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
     @Override
     public void computeScroll() {
         super.computeScroll();
-        if(mOverScroller.computeScrollOffset()){
-            scrollTo(0,mOverScroller.getCurrY());
+        if (mOverScroller.computeScrollOffset()) {
+            scrollTo(0, mOverScroller.getCurrY());
             invalidate();
-            if(mOverScroller.isFinished()){
-                if(mState == REFRESHING){
-                    if(mRefreshListener!=null){
+            if (mOverScroller.isFinished()) {
+                if (mState == REFRESHING) {
+                    if (mRefreshListener != null) {
                         mRefreshListener.onRefresh();
                     }
-                }else if(mState == FINIFSHING){
+                } else if (mState == FINIFSHING) {
                     mState = NORMAL;
-                    if(mRefreshListener!=null){
+                    if (mRefreshListener != null) {
                         mRefreshListener.onFinish();
                     }
                 }
@@ -139,13 +152,19 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
     public void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed) {
 //        L.i("onNestedPreScroll dy:" + dy + "  consumed:" + consumed[1]);
         //消耗头部 0 - -maxDistance
-        boolean isShowHeader = dy < 0 && !mContentView.canScrollVertically(-1);
-        boolean isHideHeader = dy > 0 &&getScrollY()<0;
-
-        if(isHideHeader||isShowHeader){
-            scrollBy(0,dy);
+        if (whenMove(dy)) {
             consumed[1] = dy;
         }
+    }
+
+    private boolean whenMove(int dy) {
+        boolean isShowHeader = dy < 0 && !mContentView.canScrollVertically(-1);
+        boolean isHideHeader = dy > 0 && getScrollY() < 0;
+
+        if (isHideHeader || isShowHeader) {
+            scrollBy(0, dy);
+        }
+        return isHideHeader || isShowHeader;
     }
 
     @Override
@@ -157,7 +176,7 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
 
     @Override
     public boolean onNestedFling(@NonNull View target, float velocityX, float velocityY, boolean consumed) {
-        L.i("onNestedPreFling velocityY:" + velocityY+"   consumed:"+consumed);
+        L.i("onNestedPreFling velocityY:" + velocityY + "   consumed:" + consumed);
         return false;
     }
 
@@ -168,6 +187,35 @@ public class NestedRefreshLayout extends ViewGroup implements NestedScrollingPar
         return false;
     }
 
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (mContentView instanceof NestedScrollingChild) {
+            return super.dispatchTouchEvent(event);
+        }
+        int action = event.getAction();
+        float y = event.getY();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN: {
+                whenDown();
+                mLastY = y;
+            }
+            break;
+            case MotionEvent.ACTION_MOVE: {
+                whenMove((int) (mLastY-y));
+                mLastY = event.getY();
+            }
+            break;
+            case MotionEvent.ACTION_UP: {
+                whenUp();
+            }
+            break;
+            case MotionEvent.ACTION_CANCEL: {
+
+            }
+            break;
+        }
+        return super.dispatchTouchEvent(event);
+    }
 
     public void stopRefresh() {
         L.i("结束刷新");
