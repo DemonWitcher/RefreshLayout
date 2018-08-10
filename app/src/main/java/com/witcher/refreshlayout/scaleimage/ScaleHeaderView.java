@@ -14,9 +14,6 @@ import com.witcher.refreshlayout.R;
 
 public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent {
 
-    private View mHeaderView;
-    private View mContentView;
-
     private static final int MAX_DISTANCE = 500;
     private static final int SCALE_DISTANCE = 200;
     private static final int MAX_HIDE_DISTANCE = 200;
@@ -29,6 +26,9 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
     private int mBackTime;//松手后回弹耗时
     private float mMaxScale;//头部缩放增量
     private boolean mIsHideHeader;
+
+    private View mHeaderView;
+    private View mContentView;
 
     private OverScroller mScroller;
     private int offsetY;
@@ -167,12 +167,12 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
         mContentView.layout(l, t, r, b);
     }
 
-    public View getHeaderView() {
-        return mHeaderView;
+    public <T extends View> T getHeaderView() {
+        return (T) mHeaderView;
     }
 
-    public View getContentView() {
-        return mContentView;
+    public <T extends View> T getContentView() {
+        return (T) mContentView;
     }
 
     public void setProgressListener(ProgressListener progressListener) {

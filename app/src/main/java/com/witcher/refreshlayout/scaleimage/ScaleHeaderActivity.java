@@ -30,7 +30,7 @@ public class ScaleHeaderActivity extends AppCompatActivity {
         recyclerView.setAdapter(new TestAdapter(this));
 
 
-        ImageView iv = (ImageView) refreshLayout.getHeaderView();
+        ImageView iv = refreshLayout.getHeaderView();
         iv.setImageResource(R.drawable.img2);
     }
 
