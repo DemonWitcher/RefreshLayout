@@ -26,6 +26,7 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
     private int mBackTime;//松手后回弹耗时
     private float mMaxScale;//头部缩放增量
     private boolean mIsHideHeader;
+    private int mHeaderViewMarginTop;
 
     private View mHeaderView;
     private View mContentView;
@@ -55,6 +56,7 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
         mMaxDistance = (int) attributes.getDimension(R.styleable.ScaleHeaderView_MaxDistance,MAX_DISTANCE);
         mScaleDistance = (int)attributes.getDimension(R.styleable.ScaleHeaderView_ScaleDistance,SCALE_DISTANCE);
         mMaxHideDistance = (int)attributes.getDimension(R.styleable.ScaleHeaderView_MaxHideDistance,MAX_HIDE_DISTANCE);
+        mHeaderViewMarginTop = (int)attributes.getDimension(R.styleable.ScaleHeaderView_HeaderViewMarginTop,0);
         mBackTime = attributes.getInteger(R.styleable.ScaleHeaderView_BackTime,BACK_TIME);
         mMaxScale = attributes.getFloat(R.styleable.ScaleHeaderView_MaxScale,MAX_SCALE);
         mIsHideHeader = attributes.getBoolean(R.styleable.ScaleHeaderView_IsHideHeader,false);
@@ -163,8 +165,8 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        mHeaderView.layout(l, t, r, t + mHeaderView.getMeasuredHeight());
-        mContentView.layout(l, t, r, b);
+        mHeaderView.layout(l, mHeaderViewMarginTop, r,  mHeaderViewMarginTop+mHeaderView.getMeasuredHeight());
+        mContentView.layout(l, 0, r, mContentView.getMeasuredHeight());
     }
 
     public <T extends View> T getHeaderView() {

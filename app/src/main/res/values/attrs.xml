@@ -4,6 +4,7 @@
         <attr name="MaxDistance" format="dimension" />
         <attr name="ScaleDistance" format="dimension" />
         <attr name="MaxHideDistance" format="dimension" />
+        <attr name="HeaderViewMarginTop" format="dimension" />
         <attr name="BackTime" format="integer" />
         <attr name="MaxScale" format="float" />
         <attr name="IsHideHeader" format="boolean" />
