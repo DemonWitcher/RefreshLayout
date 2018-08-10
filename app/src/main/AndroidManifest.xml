@@ -45,6 +45,14 @@
             <!--</intent-filter>-->
         </activity>
         <activity android:name=".nested.NestedRefreshActivity">
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
+        </activity>
+
+        <activity android:name=".scaleimage.ScaleHeaderActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
