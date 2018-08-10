@@ -1,6 +1,7 @@
 package com.witcher.refreshlayout.scaleimage;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.support.annotation.NonNull;
 import android.support.v4.view.NestedScrollingParent;
 import android.support.v4.view.ViewCompat;
@@ -9,19 +10,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.OverScroller;
 
-import com.witcher.refreshlayout.L;
+import com.witcher.refreshlayout.R;
 
 public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent {
 
     private View mHeaderView;
     private View mContentView;
 
-    private int mMaxDistance = 500; // 最多下拉500 就不让拉了
-    private int mScaleDistance = 200;//下拉到200时 header到缩放最大值
-    private int mMaxHideDistance = 200;//最多划到 200 头部隐藏
+    private static final int MAX_DISTANCE = 500;
+    private static final int SCALE_DISTANCE = 200;
+    private static final int MAX_HIDE_DISTANCE = 200;
+    private static final int BACK_TIME = 200;
+    private static final float MAX_SCALE = 0.2f;
 
-    private int mBackTime = 200;//松手后回弹耗时
-    private float mMaxScale = 0.2f;//头部缩放增量
+    private int mMaxDistance; // 最多下拉500 就不让拉了
+    private int mScaleDistance;//下拉到200时 header到缩放最大值
+    private int mMaxHideDistance;//最多划到 200 头部隐藏
+    private int mBackTime;//松手后回弹耗时
+    private float mMaxScale;//头部缩放增量
+    private boolean mIsHideHeader;
 
     private OverScroller mScroller;
     private int offsetY;
@@ -30,22 +37,33 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
     private ProgressListener mProgressListener;
 
     public ScaleHeaderView(Context context) {
-        super(context);
+        this(context,null);
         init();
     }
 
     public ScaleHeaderView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+        this(context, attrs,0);
         init();
     }
 
     public ScaleHeaderView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
+
+        final TypedArray attributes = getContext().obtainStyledAttributes(
+                attrs, R.styleable.ScaleHeaderView);
+        mMaxDistance = (int) attributes.getDimension(R.styleable.ScaleHeaderView_MaxDistance,MAX_DISTANCE);
+        mScaleDistance = (int)attributes.getDimension(R.styleable.ScaleHeaderView_ScaleDistance,SCALE_DISTANCE);
+        mMaxHideDistance = (int)attributes.getDimension(R.styleable.ScaleHeaderView_MaxHideDistance,MAX_HIDE_DISTANCE);
+        mBackTime = attributes.getInteger(R.styleable.ScaleHeaderView_BackTime,BACK_TIME);
+        mMaxScale = attributes.getFloat(R.styleable.ScaleHeaderView_MaxScale,MAX_SCALE);
+        mIsHideHeader = attributes.getBoolean(R.styleable.ScaleHeaderView_IsHideHeader,false);
+        attributes.recycle();
     }
 
     private void init() {
         mScroller = new OverScroller(getContext());
+
     }
 
     @Override
@@ -73,8 +91,8 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
         whenUp();
     }
 
-    private void whenUp(){
-        mScroller.startScroll(0,offsetY,0,-offsetY,mBackTime);
+    private void whenUp() {
+        mScroller.startScroll(0, offsetY, 0, -offsetY, mBackTime);
         invalidate();
     }
 
@@ -86,13 +104,16 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
          */
         if (whenMove(dy)) {
             consumed[1] = dy;
-        }else{
+        } else {
             scrollProgress = scrollProgress + dy;
-            scrollProgress = Math.max(0,scrollProgress);
-            scrollProgress = Math.min(scrollProgress,mMaxHideDistance);
-            if(mProgressListener !=null){
-                float progress = (float) scrollProgress/mMaxHideDistance;
+            scrollProgress = Math.max(0, scrollProgress);
+            scrollProgress = Math.min(scrollProgress, mMaxHideDistance);
+            float progress = (float) scrollProgress / mMaxHideDistance;
+            if (mProgressListener != null) {
                 mProgressListener.onScroll(progress);
+            }
+            if (mIsHideHeader) {
+                mHeaderView.setAlpha(1-progress);
             }
         }
     }
@@ -111,12 +132,12 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
         return down || up;
     }
 
-    private void scaleHeader(){
+    private void scaleHeader() {
         int progress = offsetY;
-        progress = Math.max(0,progress);
-        progress = Math.min(mScaleDistance,progress);
+        progress = Math.max(0, progress);
+        progress = Math.min(mScaleDistance, progress);
 
-        float scale =(float)progress/mScaleDistance * mMaxScale  + 1.0f;
+        float scale = (float) progress / mScaleDistance * mMaxScale + 1.0f;
 
         mHeaderView.setScaleY(scale);
         mHeaderView.setScaleX(scale);
@@ -154,11 +175,15 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
         return mContentView;
     }
 
-    public void setProgressListener(ProgressListener progressListener){
+    public void setProgressListener(ProgressListener progressListener) {
         this.mProgressListener = progressListener;
     }
 
-    public interface ProgressListener{
+    public void hideHeader(boolean hideHeader) {
+        mIsHideHeader = hideHeader;
+    }
+
+    public interface ProgressListener {
         void onScroll(float progress);
     }
 }
