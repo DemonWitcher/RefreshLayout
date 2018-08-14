@@ -95,8 +95,10 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
     }
 
     private void whenUp() {
-        mScroller.startScroll(0, offsetY, 0, -offsetY, mBackTime);
-        invalidate();
+        if(offsetY != 0){
+            mScroller.startScroll(0, offsetY, 0, -offsetY, mBackTime);
+            invalidate();
+        }
     }
 
     @Override
