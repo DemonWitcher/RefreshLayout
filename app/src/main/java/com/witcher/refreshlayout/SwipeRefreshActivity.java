@@ -2,6 +2,7 @@ package com.witcher.refreshlayout;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ListView;
@@ -29,7 +30,7 @@ public class SwipeRefreshActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         L.i("我是上层 刷新了数据");
-//                       refreshLayout.setRefreshing(false);
+                       refreshLayout.setRefreshing(false);
                     }
                 },1000);
             }
@@ -42,9 +43,9 @@ public class SwipeRefreshActivity extends AppCompatActivity {
             }
         });
 
-//        recyclerView = findViewById(R.id.rv);
-//        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL,false));
-//        recyclerView.setAdapter(new TestAdapter(this));
+        recyclerView = findViewById(R.id.rv);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL,false));
+        recyclerView.setAdapter(new TestAdapter(this));
 
 //        lv = findViewById(R.id.lv);
 //        lv.setAdapter(new BaseAdapter() {

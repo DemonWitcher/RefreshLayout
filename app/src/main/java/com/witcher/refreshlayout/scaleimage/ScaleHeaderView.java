@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.OverScroller;
 
+import com.witcher.refreshlayout.L;
 import com.witcher.refreshlayout.R;
 
 public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent {
@@ -35,7 +36,7 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
     private int offsetY;
     private int scrollProgress;
 
-    private ProgressListener mProgressListener;
+    private MoveListener mMoveListener;
 
     public ScaleHeaderView(Context context) {
         this(context,null);
@@ -111,9 +112,6 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
             scrollProgress = Math.max(0, scrollProgress);
             scrollProgress = Math.min(scrollProgress, mMaxHideDistance);
             float progress = (float) scrollProgress / mMaxHideDistance;
-            if (mProgressListener != null) {
-                mProgressListener.onScroll(progress);
-            }
             if (mIsHideHeader) {
                 mHeaderView.setAlpha(1-progress);
             }
@@ -130,6 +128,9 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
             offsetY = finalY;
             mContentView.setTranslationY(finalY);
             scaleHeader();
+            if(mMoveListener!=null){
+                mMoveListener.onMove(finalY);
+            }
         }
         return down || up;
     }
@@ -153,10 +154,24 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
             offsetY = currentY;
             mContentView.setTranslationY(currentY);
             scaleHeader();
+            if(mMoveListener!=null){
+                mMoveListener.onMove(currentY);
+            }
             invalidate();
         }
     }
+    @Override
+    public boolean onNestedFling(@NonNull View target, float velocityX, float velocityY, boolean consumed) {
+        L.i("onNestedPreFling velocityY:" + velocityY + "   consumed:" + consumed);
+        return false;
+    }
 
+    @Override
+    public boolean onNestedPreFling(@NonNull View target, float velocityX, float velocityY) {
+        //这里跟着一起抛动
+        //如果头部露出 就滚到头部隐藏位置 然后不给子view  如果没露出 就给子view
+        return false;
+    }
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -177,15 +192,13 @@ public class ScaleHeaderView extends ViewGroup implements NestedScrollingParent 
         return (T) mContentView;
     }
 
-    public void setProgressListener(ProgressListener progressListener) {
-        this.mProgressListener = progressListener;
-    }
-
     public void hideHeader(boolean hideHeader) {
         mIsHideHeader = hideHeader;
     }
-
-    public interface ProgressListener {
-        void onScroll(float progress);
+    public void setMoveListener(MoveListener moveListener){
+        this.mMoveListener = moveListener;
+    }
+    public interface MoveListener{
+        void onMove(int offsetY);
     }
 }
